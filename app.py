@@ -40,16 +40,17 @@ def sync_to_notion():
 def home():
     return "Freyr Notion Sync is running.", 200
 
-if __name__ == "__main__":
-    with app.test_client() as c:
-        response = c.post("/sync", json={
-            "name": "Test Document",
-            "category": "Internal Standard",
-            "file_link": "https://example.com/test-document",
-            "notes": "This is a test entry to verify webhook functionality.",
-            "date": "2025-04-21",
-            "status": "Draft"
-        })
-        print("Test sync response:", response.status_code, response.get_data(as_text=True))
+# ✅ TEMP TEST: Trigger a sync automatically at startup
+with app.test_client() as c:
+    response = c.post("/sync", json={
+        "name": "Test Document",
+        "category": "Internal Standard",
+        "file_link": "https://example.com/test-document",
+        "notes": "This is a test entry to verify webhook functionality.",
+        "date": "2025-04-21",
+        "status": "Draft"
+    })
+    print("Test sync response:", response.status_code, response.get_data(as_text=True))
 
+if __name__ == "__main__":
     app.run(debug=True)
