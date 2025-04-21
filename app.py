@@ -1,12 +1,16 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import requests
 import os
 
 app = Flask(__name__)
+CORS(app)  # Enable cross-origin requests (CORS) so the test HTML can call this API
 
+# Notion API keys from Replit Secrets
 NOTION_TOKEN = os.environ.get("NOTION_TOKEN")
 DATABASE_ID = os.environ.get("NOTION_DATABASE_ID")
 
+# Standard Notion API headers
 headers = {
     "Authorization": f"Bearer {NOTION_TOKEN}",
     "Content-Type": "application/json",
@@ -21,11 +25,10 @@ def sync_to_notion():
         "parent": {"database_id": DATABASE_ID},
         "properties": {
             "Name": {"title": [{"text": {"content": data.get("name")}}]},
-            "Category": {"rich_text": [{"text": {"content": data.get("category")}}]},
-            "File Link": {"url": data.get("file_link")},
-            "Notes": {"rich_text": [{"text": {"content": data.get("notes")}}]},
-            "Date Added": {"date": {"start": data.get("date")}},
-            "Status": {"rich_text": [{"text": {"content": data.get("status", "Draft")}}]}
+            "Category": {"select": {"name": data.get("category")}},
+            "Status": {"select": {"name": data.get("status", "Draft")}},
+            "File Link": {"url": data.get("file_link")}  # only if a property by this name exists
+
         }
     }
 
@@ -40,17 +43,6 @@ def sync_to_notion():
 def home():
     return "Freyr Notion Sync is running.", 200
 
-# ✅ TEMP TEST: Trigger a sync automatically at startup
-with app.test_client() as c:
-    response = c.post("/sync", json={
-        "name": "Test Document",
-        "category": "Internal Standard",
-        "file_link": "https://example.com/test-document",
-        "notes": "This is a test entry to verify webhook functionality.",
-        "date": "2025-04-21",
-        "status": "Draft"
-    })
-    print("Test sync response:", response.status_code, response.get_data(as_text=True))
-
 if __name__ == "__main__":
     app.run(debug=True)
+
